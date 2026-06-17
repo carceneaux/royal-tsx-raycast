@@ -150,12 +150,12 @@ export default function Command() {
       {filtered.map((c) => (
         <List.Item
           key={c.id}
-          icon={Icon.Network}
+          icon={Icon.ChevronRightSmall}
           title={c.name}
           subtitle={c.description}
           actions={
             <ActionPanel>
-              <Action title="Connect" onAction={() => handleConnect(c.id)} />
+              <Action title="Connection List" onAction={() => handleConnect(c.id)} />
             </ActionPanel>
           }
         />
@@ -169,7 +169,7 @@ export default function Command() {
           actions={
             <ActionPanel>
               <Action
-                title="Connect"
+                title="Connection List"
                 onAction={() => handleAdHoc(searchText.trim())}
               />
             </ActionPanel>
