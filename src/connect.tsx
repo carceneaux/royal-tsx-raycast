@@ -150,7 +150,7 @@ export default function Command() {
       {filtered.map((c) => (
         <List.Item
           key={c.id}
-          icon={Icon.ChevronRightSmall}
+          icon={Icon.Play}
           title={c.name}
           subtitle={c.description}
           actions={
