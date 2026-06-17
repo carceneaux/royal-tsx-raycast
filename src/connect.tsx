@@ -5,6 +5,7 @@ import {
   Icon,
   showToast,
   Toast,
+  LocalStorage,
 } from "@raycast/api";
 import { runAppleScript } from "@raycast/utils";
 import { useState, useEffect } from "react";
@@ -87,24 +88,65 @@ export default function Command() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [recentIds, setRecentIds] = useState<string[]>([]);
 
   useEffect(() => {
     fetchConnections()
-      .then(setConnections)
+      .then((conns) => {
+        const sorted = [...conns].sort((a, b) =>
+          a.name.toLowerCase().localeCompare(b.name.toLowerCase()),
+        );
+        setConnections(sorted);
+      })
       .catch((err) => {
         setError(err instanceof Error ? err.message : String(err));
       })
       .finally(() => setIsLoading(false));
   }, []);
 
-  const filtered = filterConnections(connections, searchText);
-  const showAdHoc = filtered.length === 0 && searchText.trim().length > 0;
+  useEffect(() => {
+    LocalStorage.getItem<string>("recent-connections").then((value) => {
+      if (value) {
+        try {
+          setRecentIds(JSON.parse(value));
+        } catch {
+          setRecentIds([]);
+        }
+      }
+    });
+  }, []);
+
+  function saveRecentIds(ids: string[]) {
+    LocalStorage.setItem("recent-connections", JSON.stringify(ids));
+  }
+
+  function addToRecent(id: string) {
+    const updated = [id, ...recentIds.filter((r) => r !== id)].slice(0, 10);
+    setRecentIds(updated);
+    saveRecentIds(updated);
+  }
+
+  const recentConnections = recentIds
+    .map((id) => connections.find((c) => c.id === id))
+    .filter((c): c is Connection => c !== undefined);
+
+  const remainingConnections = connections.filter(
+    (c) => !recentIds.includes(c.id),
+  );
+
+  const filteredRecent = filterConnections(recentConnections, searchText);
+  const filteredRemaining = filterConnections(remainingConnections, searchText);
+  const showAdHoc =
+    filteredRecent.length === 0 &&
+    filteredRemaining.length === 0 &&
+    searchText.trim().length > 0;
 
   async function handleConnect(id: string) {
     try {
       await showToast({ style: Toast.Style.Animated, title: "Connecting…" });
       await connectToConnection(id);
       await showToast({ style: Toast.Style.Success, title: "Connected" });
+      addToRecent(id);
     } catch (err) {
       await showToast({
         style: Toast.Style.Failure,
@@ -147,19 +189,46 @@ export default function Command() {
       onSearchTextChange={setSearchText}
       searchBarPlaceholder="Search connections…"
     >
-      {filtered.map((c) => (
-        <List.Item
-          key={c.id}
-          icon={Icon.Play}
-          title={c.name}
-          subtitle={c.description}
-          actions={
-            <ActionPanel>
-              <Action title="Connection List" onAction={() => handleConnect(c.id)} />
-            </ActionPanel>
-          }
-        />
-      ))}
+      {filteredRecent.length > 0 && (
+        <List.Section title="Recent">
+          {filteredRecent.map((c) => (
+            <List.Item
+              key={c.id}
+              icon={Icon.Play}
+              title={c.name}
+              subtitle={c.description}
+              actions={
+                <ActionPanel>
+                  <Action
+                    title="Connect"
+                    onAction={() => handleConnect(c.id)}
+                  />
+                </ActionPanel>
+              }
+            />
+          ))}
+        </List.Section>
+      )}
+      {filteredRemaining.length > 0 && (
+        <List.Section title="All Connections">
+          {filteredRemaining.map((c) => (
+            <List.Item
+              key={c.id}
+              icon={Icon.Play}
+              title={c.name}
+              subtitle={c.description}
+              actions={
+                <ActionPanel>
+                  <Action
+                    title="Connection List"
+                    onAction={() => handleConnect(c.id)}
+                  />
+                </ActionPanel>
+              }
+            />
+          ))}
+        </List.Section>
+      )}
       {showAdHoc && (
         <List.Item
           key="adhoc"
