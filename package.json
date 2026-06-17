@@ -12,7 +12,7 @@
   "commands": [
     {
       "name": "connect",
-      "title": "Connect",
+      "title": "Connection List",
       "description": "Search and connect to Royal TSX connections",
       "mode": "view"
     }
