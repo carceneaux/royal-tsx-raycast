@@ -1,4 +1,11 @@
-import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
+import {
+  List,
+  ActionPanel,
+  Action,
+  Icon,
+  showToast,
+  Toast,
+} from "@raycast/api";
 import { runAppleScript } from "@raycast/utils";
 import { useState, useEffect } from "react";
 
@@ -63,11 +70,16 @@ async function connectAdHoc(hostname: string): Promise<void> {
   `);
 }
 
-function filterConnections(connections: Connection[], searchText: string): Connection[] {
+function filterConnections(
+  connections: Connection[],
+  searchText: string,
+): Connection[] {
   const normalized = searchText.trim().replace(/\s+/g, " ");
   if (!normalized) return connections;
   const words = normalized.toLowerCase().split(" ");
-  return connections.filter((c) => words.every((word) => c.name.toLowerCase().includes(word)));
+  return connections.filter((c) =>
+    words.every((word) => c.name.toLowerCase().includes(word)),
+  );
 }
 
 export default function Command() {
@@ -156,7 +168,10 @@ export default function Command() {
           subtitle={searchText.trim()}
           actions={
             <ActionPanel>
-              <Action title="Connect" onAction={() => handleAdHoc(searchText.trim())} />
+              <Action
+                title="Connect"
+                onAction={() => handleAdHoc(searchText.trim())}
+              />
             </ActionPanel>
           }
         />
