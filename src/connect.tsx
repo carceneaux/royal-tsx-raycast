@@ -112,8 +112,9 @@ export default function Command() {
       if (value) {
         try {
           const parsed = JSON.parse(value);
-          console.debug(`Command: loaded ${parsed.length} recent connection id(s) from LocalStorage`);
-          setRecentIds(parsed);
+          const validated = Array.isArray(parsed) && parsed.every((x) => typeof x === "string") ? parsed : [];
+          console.debug(`Command: loaded ${validated.length} recent connection id(s) from LocalStorage`);
+          setRecentIds(validated);
         } catch (err) {
           console.error("Command: failed to parse recent-connections from LocalStorage", err);
           setRecentIds([]);
