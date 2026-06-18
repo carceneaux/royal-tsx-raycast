@@ -22,10 +22,12 @@ function escapeAppleScriptString(value: string): string {
 
 async function fetchConnections(): Promise<Connection[]> {
   console.debug("fetchConnections: starting");
+  const isRunning = await runAppleScript(`return application "Royal TSX" is running`);
+  console.debug(`fetchConnections: Royal TSX is running=${isRunning.trim()}`);
+  if (isRunning.trim() !== "true") {
+    throw new Error("Royal TSX must be running with a document open for this extension to work as designed.");
+  }
   const script = `
-    if not (application "Royal TSX" is running) then
-      error "Royal TSX must be running with a document open for this extension to work as designed."
-    end if
     tell application "Royal TSX"
       set conIds to id of every connection
       set conNames to name of every connection
