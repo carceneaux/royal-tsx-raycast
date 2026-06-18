@@ -21,6 +21,7 @@ function escapeAppleScriptString(value: string): string {
 }
 
 async function fetchConnections(): Promise<Connection[]> {
+  console.debug("fetchConnections: starting");
   const script = `
     if not (application "Royal TSX" is running) then
       error "Royal TSX must be running with a document open for this extension to work as designed."
@@ -39,8 +40,12 @@ async function fetchConnections(): Promise<Connection[]> {
     end tell
   `;
   const result = await runAppleScript(script);
-  if (!result || result.trim() === "") return [];
-  return result
+  console.debug(`fetchConnections: raw AppleScript result length=${result?.length ?? 0}`);
+  if (!result || result.trim() === "") {
+    console.debug("fetchConnections: empty result, returning []");
+    return [];
+  }
+  const connections = result
     .trim()
     .split("\n")
     .map((line) => {
@@ -52,9 +57,12 @@ async function fetchConnections(): Promise<Connection[]> {
       };
     })
     .filter((c) => c.id !== "");
+  console.debug(`fetchConnections: parsed ${connections.length} connection(s)`);
+  return connections;
 }
 
 async function connectToConnection(id: string): Promise<void> {
+  console.debug(`connectToConnection: id=${id}`);
   const safeId = escapeAppleScriptString(id);
   await runAppleScript(`
     tell application "Royal TSX"
@@ -65,6 +73,7 @@ async function connectToConnection(id: string): Promise<void> {
 }
 
 async function connectAdHoc(hostname: string): Promise<void> {
+  console.debug(`connectAdHoc: hostname=${hostname}`);
   const safeHostname = escapeAppleScriptString(hostname);
   await runAppleScript(`
     tell application "Royal TSX"
@@ -96,12 +105,14 @@ export default function Command() {
   useEffect(() => {
     fetchConnections()
       .then((conns) => {
+        console.debug(`Command: fetched ${conns.length} connection(s), sorting`);
         const sorted = [...conns].sort((a, b) =>
           a.name.toLowerCase().localeCompare(b.name.toLowerCase()),
         );
         setConnections(sorted);
       })
       .catch((err) => {
+        console.error("Command: fetchConnections failed", err);
         setError(err instanceof Error ? err.message : String(err));
       })
       .finally(() => setIsLoading(false));
@@ -111,10 +122,15 @@ export default function Command() {
     LocalStorage.getItem<string>("recent-connections").then((value) => {
       if (value) {
         try {
-          setRecentIds(JSON.parse(value));
-        } catch {
+          const parsed = JSON.parse(value);
+          console.debug(`Command: loaded ${parsed.length} recent connection id(s) from LocalStorage`);
+          setRecentIds(parsed);
+        } catch (err) {
+          console.error("Command: failed to parse recent-connections from LocalStorage", err);
           setRecentIds([]);
         }
+      } else {
+        console.debug("Command: no recent-connections found in LocalStorage");
       }
     });
   }, []);
@@ -124,6 +140,7 @@ export default function Command() {
   }
 
   function addToRecent(id: string) {
+    console.debug(`addToRecent: id=${id}`);
     const updated = [id, ...recentIds.filter((r) => r !== id)].slice(0, 10);
     setRecentIds(updated);
     saveRecentIds(updated);
@@ -145,12 +162,15 @@ export default function Command() {
     searchText.trim().length > 0;
 
   async function handleConnect(id: string) {
+    console.debug(`handleConnect: id=${id}`);
     try {
       await showToast({ style: Toast.Style.Animated, title: "Connecting…" });
       await connectToConnection(id);
+      console.debug(`handleConnect: successfully connected id=${id}`);
       await showToast({ style: Toast.Style.Success, title: "Connected" });
       addToRecent(id);
     } catch (err) {
+      console.error(`handleConnect: failed for id=${id}`, err);
       await showToast({
         style: Toast.Style.Failure,
         title: "Connection failed",
@@ -160,11 +180,14 @@ export default function Command() {
   }
 
   async function handleAdHoc(hostname: string) {
+    console.debug(`handleAdHoc: hostname=${hostname}`);
     try {
       await showToast({ style: Toast.Style.Animated, title: "Connecting…" });
       await connectAdHoc(hostname);
+      console.debug(`handleAdHoc: successfully connected hostname=${hostname}`);
       await showToast({ style: Toast.Style.Success, title: "Connected" });
     } catch (err) {
+      console.error(`handleAdHoc: failed for hostname=${hostname}`, err);
       await showToast({
         style: Toast.Style.Failure,
         title: "Connection failed",
