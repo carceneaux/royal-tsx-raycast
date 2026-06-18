@@ -1,4 +1,6 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "include": ["src", "raycast-env.d.ts"],
   "compilerOptions": {
     "jsx": "react-jsx",
     "target": "ESNext",
@@ -9,6 +11,5 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
-  },
-  "include": ["src"]
+  }
 }
