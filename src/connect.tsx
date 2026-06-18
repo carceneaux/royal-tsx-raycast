@@ -22,6 +22,9 @@ function escapeAppleScriptString(value: string): string {
 
 async function fetchConnections(): Promise<Connection[]> {
   const script = `
+    if not (application "Royal TSX" is running) then
+      error "Royal TSX must be running with a document open for this extension to work as designed."
+    end if
     tell application "Royal TSX"
       set conIds to id of every connection
       set conNames to name of every connection
@@ -175,8 +178,7 @@ export default function Command() {
       <List>
         <List.EmptyView
           icon={Icon.ExclamationMark}
-          title="Could not load connections"
-          description={error}
+          title={error}
         />
       </List>
     );
