@@ -1,4 +1,4 @@
-import { List, ActionPanel, Action, Icon, showToast, Toast, LocalStorage, popToRoot } from "@raycast/api";
+import { List, ActionPanel, Action, Icon, showToast, Toast, LocalStorage, closeMainWindow } from "@raycast/api";
 import { runAppleScript } from "@raycast/utils";
 import { useState, useEffect } from "react";
 
@@ -150,7 +150,7 @@ export default function Command() {
       await connectToConnection(id);
       console.debug(`handleConnect: successfully connected id=${id}`);
       addToRecent(id);
-      await popToRoot();
+      await closeMainWindow();
     } catch (err) {
       console.error(`handleConnect: failed for id=${id}`, err);
       await showToast({
@@ -167,7 +167,7 @@ export default function Command() {
       await showToast({ style: Toast.Style.Animated, title: "Connecting…" });
       await connectAdHoc(hostname);
       console.debug(`handleAdHoc: successfully connected hostname=${hostname}`);
-      await popToRoot();
+      await closeMainWindow();
     } catch (err) {
       console.error(`handleAdHoc: failed for hostname=${hostname}`, err);
       await showToast({
