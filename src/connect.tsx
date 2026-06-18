@@ -1,12 +1,4 @@
-import {
-  List,
-  ActionPanel,
-  Action,
-  Icon,
-  showToast,
-  Toast,
-  LocalStorage,
-} from "@raycast/api";
+import { List, ActionPanel, Action, Icon, showToast, Toast, LocalStorage } from "@raycast/api";
 import { runAppleScript } from "@raycast/utils";
 import { useState, useEffect } from "react";
 
@@ -85,16 +77,11 @@ async function connectAdHoc(hostname: string): Promise<void> {
   `);
 }
 
-function filterConnections(
-  connections: Connection[],
-  searchText: string,
-): Connection[] {
+function filterConnections(connections: Connection[], searchText: string): Connection[] {
   const normalized = searchText.trim().replace(/\s+/g, " ");
   if (!normalized) return connections;
   const words = normalized.toLowerCase().split(" ");
-  return connections.filter((c) =>
-    words.every((word) => c.name.toLowerCase().includes(word)),
-  );
+  return connections.filter((c) => words.every((word) => c.name.toLowerCase().includes(word)));
 }
 
 export default function Command() {
@@ -108,9 +95,7 @@ export default function Command() {
     fetchConnections()
       .then((conns) => {
         console.debug(`Command: fetched ${conns.length} connection(s), sorting`);
-        const sorted = [...conns].sort((a, b) =>
-          a.name.toLowerCase().localeCompare(b.name.toLowerCase()),
-        );
+        const sorted = [...conns].sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase()));
         setConnections(sorted);
       })
       .catch((err) => {
@@ -152,16 +137,11 @@ export default function Command() {
     .map((id) => connections.find((c) => c.id === id))
     .filter((c): c is Connection => c !== undefined);
 
-  const remainingConnections = connections.filter(
-    (c) => !recentIds.includes(c.id),
-  );
+  const remainingConnections = connections.filter((c) => !recentIds.includes(c.id));
 
   const filteredRecent = filterConnections(recentConnections, searchText);
   const filteredRemaining = filterConnections(remainingConnections, searchText);
-  const showAdHoc =
-    filteredRecent.length === 0 &&
-    filteredRemaining.length === 0 &&
-    searchText.trim().length > 0;
+  const showAdHoc = filteredRecent.length === 0 && filteredRemaining.length === 0 && searchText.trim().length > 0;
 
   async function handleConnect(id: string) {
     console.debug(`handleConnect: id=${id}`);
@@ -201,10 +181,7 @@ export default function Command() {
   if (error) {
     return (
       <List>
-        <List.EmptyView
-          icon={Icon.ExclamationMark}
-          title={error}
-        />
+        <List.EmptyView icon={Icon.ExclamationMark} title={error} />
       </List>
     );
   }
@@ -226,10 +203,7 @@ export default function Command() {
               subtitle={c.description}
               actions={
                 <ActionPanel>
-                  <Action
-                    title="Connect"
-                    onAction={() => handleConnect(c.id)}
-                  />
+                  <Action title="Connect" onAction={() => handleConnect(c.id)} />
                 </ActionPanel>
               }
             />
@@ -246,10 +220,7 @@ export default function Command() {
               subtitle={c.description}
               actions={
                 <ActionPanel>
-                  <Action
-                    title="Connection List"
-                    onAction={() => handleConnect(c.id)}
-                  />
+                  <Action title="Connection List" onAction={() => handleConnect(c.id)} />
                 </ActionPanel>
               }
             />
@@ -264,10 +235,7 @@ export default function Command() {
           subtitle={searchText.trim()}
           actions={
             <ActionPanel>
-              <Action
-                title="Connection List"
-                onAction={() => handleAdHoc(searchText.trim())}
-              />
+              <Action title="Connection List" onAction={() => handleAdHoc(searchText.trim())} />
             </ActionPanel>
           }
         />
